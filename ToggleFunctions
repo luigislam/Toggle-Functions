@@ -1,20 +1,20 @@
-; Use Fn_Toggle("KeyName", True) flips the Toggle on.
-; Use Fn_Toggle("KeyName") to check if the Toggle is On and if yes, return True and then flip the Toggle to Off.
-Fn_Toggle(KeyName, isToggledOn?){
+; Use Fn_Wait("KeyName", True) flips the Toggle on.
+; Use Fn_Wait("KeyName") to check if the Toggle is On and if yes, return True and then flip the Toggle to Off.
+Fn_Wait(KeyName, isWaiting?){
     Static mymap := Map()
     If myMap.Has(KeyName){ ; if KeyName is Set...
-        If !isSet(isToggledOn){ ; if isToggleOn is not being used to toggle True/False...
+        If !isSet(isWaiting){ ; if isToggleOn is not being used to toggle True/False...
             If myMap[KeyName]{ ; if isToggleOn is True...
                 myMap[KeyName] := false ; Turn the Toggle Off
                 Return true ; Evaluate as True
             }
         }
         Else { ; if isToggleOn is being used to adjust the On/Off...
-            Return myMap[KeyName] := isToggledOn
+            Return myMap[KeyName] := isWaiting
         }
     }
     Else { ; Initialize the Key if it wasn't set up yet.
-        Return myMap[KeyName] := IsSet(isToggledOn) ? isToggledOn : false
+        Return myMap[KeyName] := IsSet(isWaiting) ? isWaiting : false
     }
 }
 
