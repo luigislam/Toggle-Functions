@@ -1,0 +1,76 @@
+; Use Fn_Toggle("KeyName", True) flips the Toggle on.
+; Use Fn_Toggle("KeyName") to check if the Toggle is On and if yes, return True and then flip the Toggle to Off.
+Fn_Toggle(KeyName, isToggledOn?){
+    Static mymap := Map()
+    If myMap.Has(KeyName){ ; if KeyName is Set...
+        If !isSet(isToggledOn){ ; if isToggleOn is not being used to toggle True/False...
+            If myMap[KeyName]{ ; if isToggleOn is True...
+                myMap[KeyName] := false ; Turn the Toggle Off
+                Return true ; Evaluate as True
+            }
+        }
+        Else { ; if isToggleOn is being used to adjust the On/Off...
+            Return myMap[KeyName] := isToggledOn
+        }
+    }
+    Else { ; Initialize the Key if it wasn't set up yet.
+        Return myMap[KeyName] := IsSet(isToggledOn) ? isToggledOn : false
+    }
+}
+
+; Use Fn_Queue() as the If-Statement to check if you're polling any KeyNames.
+; Use Fn_Queue("KeyName", Milliseconds) to enable Fn_Queue("KeyName") to be True for that amount of time.
+; Use Fn-Queue("KeyName", False) to turn off the Queue.
+Fn_Queue(KeyName?, Milliseconds?){
+    Static mymap := Map()
+    If !IsSet(KeyName){ ; If Key is not Set, only Return Bool if any Keys are queuing.
+        isQueuing := False
+        If mymap.Count { ; Return True if any Keys are currently Queuing, Delete any Keys that have expired the queueing process.
+            For mKey, mValue in mymap {
+                if A_TickCount - mymap[mKey].Start - mymap[mKey].End < 0
+                    isQueuing := True
+                Else
+                    mymap.Delete(mKey)
+            }
+            Return isQueuing
+        }
+    }
+    Else {
+        If IsSet(Milliseconds){ ; If Millseconds is Set, adjust the time.
+            If !myMap.Has(KeyName) ; If Key wasn't queuing, add it to the Queue.
+                myMap[KeyName] := {}
+            myMap[KeyName].Start := A_TickCount
+            mymap[KeyName].End := Milliseconds
+            Return A_TickCount - mymap[KeyName].Start - mymap[KeyName].End < 0 
+        }
+        Else { ; If Millseconds is not set, check the queue on the KeyName if it exists.
+            If myMap.Has(KeyName)
+                Return A_TickCount - mymap[KeyName].Start - mymap[KeyName].End < 0 
+        }
+    }
+}
+
+; Use Fn_Cooldown("KeyName", Milliseconds) as an If-Statement to apply a cooldown period in Milliseconds for the If-Block.
+; Use Fn_Cooldown("KeyName") to only check the status of the Cooldown period.
+Fn_Cooldown(KeyName, Milliseconds?){
+	Static myMap := Map()
+    if myMap.Has(KeyName){
+        isCooldownComplete := (A_TickCount - myMap[KeyName].Start - myMap[KeyName].Delay > 0)
+        If isCooldownComplete { ; if Cooldown is over, reset the time...
+            If IsSet(Milliseconds){
+                myMap[KeyName].Start := A_TickCount
+                myMap[KeyName].Delay := Milliseconds-1
+                Return True
+            }
+            Else {
+                Return isCooldownComplete
+            }
+        }
+    }
+    Else {
+        myMap[KeyName] := {}
+		myMap[KeyName].Start := A_TickCount
+		myMap[KeyName].Delay := IsSet(Milliseconds) ? Milliseconds-1 : 0
+        Return True
+    }
+}
