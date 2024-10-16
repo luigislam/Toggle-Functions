@@ -37,11 +37,21 @@ Fn_Queue(KeyName?, Milliseconds?){
     }
     Else {
         If IsSet(Milliseconds){ ; If Millseconds is Set, adjust the time.
-            If !myMap.Has(KeyName) ; If Key wasn't queuing, add it to the Queue.
-                myMap[KeyName] := {}
-            myMap[KeyName].Start := A_TickCount
-            mymap[KeyName].End := Milliseconds
-            Return A_TickCount - mymap[KeyName].Start - mymap[KeyName].End < 0 
+            If Milliseconds = -1 {
+                If myMap.Has(KeyName){
+                    isQueuing := A_TickCount - mymap[KeyName].Start - mymap[KeyName].End < 0 
+                    myMap[KeyName].Start := A_TickCount
+                    mymap[KeyName].End := Milliseconds
+                    Return isQueuing
+                }
+            }
+            Else If Milliseconds {
+                If !myMap.Has(KeyName) ; If Key wasn't queuing, add it to the Queue.
+                    myMap[KeyName] := {}
+                myMap[KeyName].Start := A_TickCount
+                mymap[KeyName].End := Milliseconds
+                Return A_TickCount - mymap[KeyName].Start - mymap[KeyName].End < 0 
+            }
         }
         Else { ; If Millseconds is not set, check the queue on the KeyName if it exists.
             If myMap.Has(KeyName)
@@ -51,10 +61,16 @@ Fn_Queue(KeyName?, Milliseconds?){
 }
 
 ; Use Fn_Cooldown("KeyName", Milliseconds) as an If-Statement to apply a cooldown period in Milliseconds for the If-Block.
-; Use Fn_Cooldown("KeyName") to only check the status of the Cooldown period.
+; Using a negative Milliseconds value will forcefully update the cooldown period.
+; Use Fn_Cooldown("KeyName") to check the True/False status of the cooldown period. True if Cooldown is Over. False if Cooldown is ongoing.
 Fn_Cooldown(KeyName, Milliseconds?){
 	Static myMap := Map()
     if myMap.Has(KeyName){
+        If isSet(Milliseconds) and Milliseconds<0 {
+            myMap[KeyName].Start := A_TickCount
+            myMap[KeyName].Delay := Abs(Milliseconds)-1
+            Return false
+        }
         isCooldownComplete := (A_TickCount - myMap[KeyName].Start - myMap[KeyName].Delay > 0)
         If isCooldownComplete { ; if Cooldown is over, reset the time...
             If IsSet(Milliseconds){
@@ -70,7 +86,7 @@ Fn_Cooldown(KeyName, Milliseconds?){
     Else {
         myMap[KeyName] := {}
 		myMap[KeyName].Start := A_TickCount
-		myMap[KeyName].Delay := IsSet(Milliseconds) ? Milliseconds-1 : 0
+		myMap[KeyName].Delay := IsSet(Milliseconds) ? Abs(Milliseconds)-1 : 0
         Return True
     }
 }
